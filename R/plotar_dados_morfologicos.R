@@ -13,7 +13,7 @@ library(ggplot2)
 read_data <- function(datafile = "../data/dados_morfologicos.xlsx", sheet) {
     
   x <- 
-    readxl::read_excel(datafile, toupper(var), na = "NA") %>%
+    readxl::read_excel(datafile, toupper(sheet), na = "NA") %>%
     .[sapply(., function(column) !all(is.na(column)))] %>%
     .[apply(., 1, function(row) !all(is.na(row))), ]
   
