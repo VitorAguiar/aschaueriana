@@ -102,19 +102,19 @@ plot_var <- function(x, unit) {
 }
 
 # read data, calculate growth rate and make plot ------------------------------#
-png("altura.png", width = 16, height = 8, res = 300, units = "in")
+png("../plots/altura.png", width = 16, height = 8, res = 300, units = "in")
 read_data(sheet = "altura") %>% 
   calc_growth_rate() %>% 
   plot_var(unit = "cm")
 dev.off()
 
-png("diametro.png", width = 16, height = 8, res = 300, units = "in")
+png("../plots/diametro.png", width = 16, height = 8, res = 300, units = "in")
 read_data(sheet = "diametro") %>% 
   calc_growth_rate() %>%
   plot_var(unit = "mm")
 dev.off()
 
-png("nfolhas.png", width = 16, height = 8, res = 300, units = "in")
+png("../plots/nfolhas.png", width = 16, height = 8, res = 300, units = "in")
 read_data(sheet = "n folhas") %>% 
   calc_growth_rate() %>%
   plot_var(unit = "N folhas")
