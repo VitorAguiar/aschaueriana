@@ -17,7 +17,6 @@ read_data <- function(datafile = "../data/dados_morfologicos.xlsx", sheet) {
     .[sapply(., function(column) !all(is.na(column)))] %>%
     .[apply(., 1, function(row) !all(is.na(row))), ]
   
-  
   names(x)[grep("^\\d{5}", names(x))] %<>%
     as.numeric() %>% 
     as.Date.numeric(origin = "1904-01-01") %>%
