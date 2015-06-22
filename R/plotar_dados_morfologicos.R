@@ -92,7 +92,7 @@ plot_var <- function(x, unit) {
     scale_x_discrete(labels = x_labels) +
     xlab("") +
     ylab(sprintf("Taxa de crescimento (%s / dia)", unit)) +
-    scale_color_manual(name = "Local",
+    scale_color_manual(name = "Localidade",
                        values = c("PA" = "tomato2", "SC" = "deepskyblue4")) +
     theme(axis.text = element_text(size = 14),
           axis.title = element_text(size = 18),
