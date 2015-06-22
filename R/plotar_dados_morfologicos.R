@@ -10,7 +10,7 @@ library(ggplot2)
 
 # Functions -------------------------------------------------------------------#
 ## read data
-read_data <- function(datafile = "../data/dados_morfologicos.xlsx", var) {
+read_data <- function(datafile = "../data/dados_morfologicos.xlsx", sheet) {
     
   x <- 
     readxl::read_excel(datafile, toupper(var), na = "NA") %>%
@@ -104,31 +104,31 @@ plot_var <- function(x, unit) {
 
 # read data, calculate growth rate and make plot ------------------------------#
 plot_altura <- 
-  read_data(var = "altura") %>% 
+  read_data(sheet = "altura") %>% 
   calc_growth_rate() %>% 
   plot_var(unit = "cm")
 
 plot_diametro <- 
-  read_data(variavel = "diametro") %>% 
+  read_data(sheet = "diametro") %>% 
   calc_growth_rate() %>%
   plot_var(unit = "mm")
 
 plot_nfolhas <- 
-  read_data(variavel = "n folhas") %>% 
+  read_data(sheet = "n folhas") %>% 
   calc_growth_rate() %>%
   plot_var(unit = "N folhas")
  
 # Plots -----------------------------------------------------------------------#
 plot_list <- list(plot_altura, plot_diametro, plot_nfolhas)
-
+names(plot_list) <- c("altura", "diametro", "n_folhas")
 ## pdf
 pdf("graficos_dados_morfologicos.pdf", width = 16)
 plot_list
 dev.off()
 
 ## png
-for (i in 1:3) {
-  png(paste0(c("altura", "diametro", "n_folhas")[i], ".png"), 
+for (i in 1:length(plot_list)) {
+  png(paste0(names(plot_list)[i], ".png"), 
       width = 16, height = 8, res = 300, units = "in")
   print(plot_list[[i]])
   dev.off()
