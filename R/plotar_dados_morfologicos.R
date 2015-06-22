@@ -10,9 +10,13 @@ library(ggplot2)
 
 # Functions -------------------------------------------------------------------#
 ## read data
-read_data <- function(datafile = "dados_morfologicos.xlsx", var) {
+read_data <- function(datafile = "../data/dados_morfologicos.xlsx", var) {
     
-  x <- readxl::read_excel(datafile, toupper(var), na = "NA")
+  x <- 
+    readxl::read_excel(datafile, toupper(var), na = "NA") %>%
+    .[sapply(., function(column) !all(is.na(column)))] %>%
+    .[apply(., 1, function(row) !all(is.na(row))), ]
+  
   
   names(x)[grep("^\\d{5}", names(x))] %<>%
     as.numeric() %>% 
@@ -50,9 +54,9 @@ plot_var <- function(x, unit) {
   # plot data 
   summary_stats <-
     x %>% 
-    dplyr::select(mae, localidade, individuo, starts_with("rate")) %>%
+    dplyr::select(localidade, starts_with("rate")) %>%
     dplyr::group_by(localidade) %>%
-    dplyr::summarise_each(funs(mean(., na.rm = TRUE), sd(., na.rm = TRUE)), 
+    dplyr::summarise_each(dplyr::funs(mean(., na.rm = TRUE), sd(., na.rm = TRUE)), 
                           starts_with("rate")) %>%
     tidyr::gather(rate, value, -localidade) %>%
     tidyr::extract(rate, c("rate", "stat"), "(rate.)_(.+)") %>%
@@ -61,9 +65,8 @@ plot_var <- function(x, unit) {
   # Plot parameters:
   
   ## parameter 1: pvalues of the difference in growth rates between diff locals
-  x_rates <- x %>% select(localidade, starts_with("rate"))
-  p_values <- sapply(x_rates[-1],
-                     function(rate) t.test(rate ~ x_rates$localidade)$p.value)
+  p_values <- sapply(dplyr::select(x, starts_with("rate")),
+                     function(rate) t.test(rate ~ x$localidade)$p.value)
   
   ## parameter 2: location of the pvalues on the plot
   p_plot_location <-  
@@ -73,7 +76,7 @@ plot_var <- function(x, unit) {
     {m_plus_sd + min(summary_stats$mean)} 
   
   ## parameter 3: labels of the x axis
-  dates <- dat %>% select(matches("^\\d{4}-\\d{2}-\\d{2}$")) %>% names()
+  dates <- x %>% dplyr::select(matches("^\\d{4}-\\d{2}-\\d{2}$")) %>% names()
   x_labels <- character()
   for (i in 1:(length(dates)-1)) {
     x_labels <- c(x_labels, paste(dates[i], dates[i+1], sep = " to "))
@@ -101,7 +104,7 @@ plot_var <- function(x, unit) {
 
 # read data, calculate growth rate and make plot ------------------------------#
 plot_altura <- 
-  read_data(variavel = "altura") %>% 
+  read_data(var = "altura") %>% 
   calc_growth_rate() %>% 
   plot_var(unit = "cm")
 
