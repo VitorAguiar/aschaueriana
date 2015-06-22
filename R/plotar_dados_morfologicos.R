@@ -36,7 +36,7 @@ calc_growth_rate <- function(x) {
          as.Date(names(x)[first], format = "%Y-%m-%d")} %>%
       tidyr::extract_numeric()
 
-    dplyr::select(x, first, last) %>% apply(., 1, diff) / days_total
+    x[c(first, last)] %>% apply(1, diff) / days_total
   }
 
   date_cols <- grep("^\\d{4}-\\d{2}-\\d{2}", names(x))
