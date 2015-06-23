@@ -13,7 +13,7 @@ library(ggplot2)
 read_data <- function(datafile = "../data/dados_morfologicos.xlsx", sheet) {
     
   x <- 
-    readxl::read_excel(datafile, toupper(sheet), na = "NA") %>%
+    readxl::read_excel(datafile, sheet = toupper(sheet), na = "NA") %>%
     .[sapply(., function(column) !all(is.na(column)))] %>%
     .[apply(., 1, function(row) !all(is.na(row))), ]
   
@@ -30,12 +30,13 @@ calc_growth_rate <- function(x) {
   
   calc_fun <- function(x, first, last) {
   
-    days_total <- 
-      {as.Date(names(x)[last], format = "%Y-%m-%d") - 
-         as.Date(names(x)[first], format = "%Y-%m-%d")} %>%
-      tidyr::extract_numeric()
+    days_diff <- 
+      as.Date(names(x)[last], format = "%Y-%m-%d") - 
+      as.Date(names(x)[first], format = "%Y-%m-%d")
+      
+    days_diff %<>% tidyr::extract_numeric()
 
-    x[c(first, last)] %>% apply(1, diff) / days_total
+    x[c(first, last)] %>% apply(1, diff) / days_diff
   }
 
   date_cols <- grep("^\\d{4}-\\d{2}-\\d{2}", names(x))
@@ -75,7 +76,7 @@ plot_var <- function(x, unit) {
     {m_plus_sd + min(summary_stats$mean)} 
   
   ## parameter 3: labels of the x axis
-  dates <- x %>% dplyr::select(matches("^\\d{4}-\\d{2}-\\d{2}$")) %>% names()
+  dates <- names(x)[grep("^\\d{4}-\\d{2}-\\d{2}$", names(x))]
   x_labels <- character()
   for (i in 1:(length(dates)-1)) {
     x_labels <- c(x_labels, paste(dates[i], dates[i+1], sep = " to "))
@@ -84,9 +85,9 @@ plot_var <- function(x, unit) {
   # Make plot
   ggplot(summary_stats, 
          aes(x = rate, y = mean, group = localidade, color = localidade)) + 
+    geom_point(size = 5) +
     geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), 
                   stat = "identity", width = 0.2) +
-    geom_point(size = 5) +
     geom_line(size = 1.2) +
     scale_x_discrete(labels = x_labels) +
     xlab("") +
