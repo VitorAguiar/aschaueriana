@@ -79,7 +79,7 @@ plot_var <- function(x, unit) {
   dates <- names(x)[grep("^\\d{4}-\\d{2}-\\d{2}$", names(x))]
   x_labels <- character()
   for (i in 1:(length(dates)-1)) {
-    x_labels <- c(x_labels, paste(dates[i], dates[i+1], sep = " to "))
+    x_labels <- c(x_labels, paste(dates[i], dates[i+1], sep = "\nto\n"))
   }
   
   # Make plot
@@ -99,7 +99,7 @@ plot_var <- function(x, unit) {
           legend.text = element_text(size = 18),
           legend.title = element_text(size = 18)) +
     annotate("text", x = 1:length(p_plot_location), y = p_plot_location,
-             label = paste("p-value =", format(p_values, digits = 2)), size = 6)
+             label = paste("p =", format(p_values, digits = 2)), size = 6)
 }
 
 # read data, calculate growth rate and make plot ------------------------------#
