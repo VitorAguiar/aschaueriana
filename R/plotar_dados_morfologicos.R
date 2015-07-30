@@ -54,27 +54,11 @@ plot_var <- function(x, unit) {
     dplyr::select(localidade, starts_with("rate")) %>%
     tidyr::gather(rate, value, -localidade) 
   
-  p_pos <-
-    x %>%
-    dplyr::group_by(localidade, rate) %>%
-    dplyr::summarise(p = mean(value, na.rm=TRUE) + sd(value, na.rm=TRUE)) %>%
-    dplyr::group_by(rate) %>%
-    dplyr::summarise(p = max(p) + min(x$value[x$value > 0], na.rm=TRUE)) %$%
-    p
-
-  p_vals <- 
-    x %>% 
-    dplyr::group_by(rate) %>% 
-    dplyr::summarise_each(dplyr::funs(
-      t.test(.[localidade == "PA"], .[localidade == "SC"])$p.value), value) %>%
-    dplyr::mutate(value = format(value, scientific = TRUE, digits = 2)) %$%
-    paste("p =", value)
-
-  ggplot(x, aes(x = rate, y = value, group = localidade, color = localidade)) + 
+  p <- 
+    ggplot(x, aes(x = rate, y = value, group = localidade, color = localidade)) + 
     stat_summary(fun.y = "mean", geom = "point", size = 5) +
     stat_summary(fun.y = "mean", geom = "line", size = 1.2) +
     stat_summary(fun.data = "mean_sdl", geom = "errorbar", mult=1, width=.2) +
-    annotate("text", x = seq_along(p_pos), y = p_pos, label = p_vals, size=6) +
     scale_x_discrete(labels = x_labels) +
     xlab("") +
     ylab(sprintf("Taxa de crescimento (%s / dia)", unit)) +
@@ -84,6 +68,22 @@ plot_var <- function(x, unit) {
           axis.title = element_text(size = 18),
           legend.text = element_text(size = 18),
           legend.title = element_text(size = 18))
+    
+  p_pos <-
+    suppressWarnings(ggplot_build(p)$data[[3]]) %>%
+    dplyr::group_by(x) %>%
+    dplyr::summarise(y = min(y), ymax = max(ymax)) %$%
+    {ymax + min(y)}
+
+  p_vals <- 
+    x %>% 
+    dplyr::group_by(rate) %>% 
+    dplyr::summarise_each(dplyr::funs(
+      t.test(.[localidade == "PA"], .[localidade == "SC"])$p.value), value) %>%
+    dplyr::mutate(value = format(value, scientific = TRUE, digits = 2)) %$%
+    paste("p =", value)
+
+  p + annotate("text", x = seq_along(p_pos), y = p_pos, label = p_vals, size=6)
 }
 
 # read data, calculate growth rate and make plot ------------------------------#
