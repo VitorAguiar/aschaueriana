@@ -8,13 +8,11 @@ format_weather <- function(input_file) {
     dplyr::slice(-c(1:8)) %>%
     dplyr::filter(!is.na(.[[1]])) %>% 
     split(cumsum(.[[1]] %in% .[[1]][grep("Ano", .[[1]]) - 1])) %>% 
-    lapply(. %>%
-            `names<-`(.[2, ]) %>%
-            dplyr::mutate(variable = rep(Ano[1], nrow(.))) %>%
-            dplyr::slice(-c(1:2)) %>% 
-            dplyr::select(variable, Ano, Jan:Dez)
-    ) %>%
-    dplyr::bind_rows() %>%
+    plyr::ldply(. %>%
+                  `names<-`(.[2, ]) %>%
+                  dplyr::mutate(variable = rep(Ano[1], nrow(.))) %>%
+                  dplyr::slice(-c(1:2)) %>% 
+                  dplyr::select(variable, Ano, Jan:Dez), .id = NULL) %>% 
     dplyr::mutate(local = rep(location, nrow(.))) %>%
     dplyr::select(local, variable, Ano, Jan:Dez) %>%
     tidyr::gather(mes, valor, Jan:Dez) %>% 
