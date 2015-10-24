@@ -4,15 +4,10 @@ format_weather <- function(input_file) {
   
   location <- gsub("^.*?([^/]+)\\.xlsx?$", "\\1", input_file) %>% tolower()
   
-  lc <- 
     readxl::read_excel(input_file, col_names = FALSE) %>% 
     dplyr::slice(-c(1:8)) %>%
-    dplyr::filter(!is.na(.[[1]]))
-  
-  names_lc <- lc[[1]] %>% .[grep("Ano", .) - 1]
-  
-  lc %>% 
-    split(cumsum(.[[1]] %in% names_lc)) %>% 
+    dplyr::filter(!is.na(.[[1]])) %>% 
+    split(cumsum(.[[1]] %in% .[[1]][grep("Ano", .[[1]]) - 1])) %>% 
     lapply(. %>%
             `names<-`(.[2, ]) %>%
             dplyr::mutate(variable = rep(Ano[1], nrow(.))) %>%
