@@ -1,9 +1,3 @@
-# Install (if needed) and attach packages -------------------------------------#
-packages <- c("readxl", "magrittr", "dplyr", "tidyr", "ggplot2", "Hmisc")
-pkgs_to_install <- packages[which(!packages %in% installed.packages())]
-
-if (length(pkgs_to_install)) install.packages(pkgs_to_install)
-
 library(magrittr)
 library(ggplot2)
 

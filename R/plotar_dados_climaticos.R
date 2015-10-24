@@ -1,84 +1,50 @@
-# Install (if needed) and attach packages -------------------------------------#
-
-packages <- c("dplyr", "lazyeval", "ggplot2")
-pkgs_to_install <- packages[which(!packages %in% installed.packages())]
-
-if (length(pkgs_to_install)) install.packages(pkgs_to_install)
-
 library(ggplot2)
-library(dplyr, warn.conflicts = FALSE)
-library(lazyeval)
 
-# Function to make plots ------------------------------------------------------#
-plot_vars <- function(var) {
+#function to make plots
+plot_vars <- function(plot_df) {
   
-  dados_climaticos_subset <-
-    dados_climaticos %>%
-    select_("local", "ano", "mes", var) %>%
-    group_by(local, mes) %>% 
-    summarise_(media = interp(~mean(var, na.rm = TRUE), var = as.name(var)),
-               sd = interp(~sd(var, na.rm = TRUE), var = as.name(var))) %>%
-    group_by(local) %>% 
-    arrange(dados_climaticos$mes %>% unique %>% order %>% rep(3))
+  ylabel <- plot_df %$% paste0(variable[1], " (", unit[1], ")")
   
-  if (var == "precipitacao") 
-    y_axis_label <- "Precipitação (mm)"
-  if (var == "radiacao") 
-    y_axis_label <- bquote('Radiação (' ~ KJ/m^2 ~ ')')
-  if (var == "temp_media") 
-    y_axis_label <- expression(paste("Temperatura Média (", degree ~ C, ")"))
-  if (var == "temp_max") 
-    y_axis_label <- expression(paste("Temperatura Máxima (", degree ~ C, ")"))
-  if (var == "temp_min") 
-    y_axis_label <- expression(paste("Temperatura Mínima (", degree ~ C, ")"))
-  if (var == "umidade") 
-    y_axis_label <- "Umidade (%)"
-  
-  ggplot(data = dados_climaticos_subset, 
-         aes(x = factor(mes, levels = unique(mes)), y = media, 
-             group = local, color = local)) +
-    geom_errorbar(aes(ymin = media - sd, ymax = media + sd), 
+  ggplot(data = plot_df, 
+         aes(x = month, y = average, group = local, color = local)) +
+    geom_errorbar(aes(ymin = average - sd, ymax = average + sd), 
                   stat = "identity", width = 0.2) +
     geom_line(size = 1.1) +
     geom_point(size = 5) +
-    scale_color_manual(name = "Local",
-                       values = c("SALINOPOLIS_PA" = "tomato2", 
-                                  "FLORIANOPOLIS_SC" = "deepskyblue4", 
-                                  "SANTA_MARTA_SC" = "mediumturquoise"),
-                       labels = c("SALINOPOLIS_PA" = "Salinópolis, PA",
-                                  "FLORIANOPOLIS_SC" = "Florianópolis, SC",
-                                  "SANTA_MARTA_SC" = "Santa Marta, SC")) +
-    ylab(y_axis_label) +
-    xlab("mês") +
+    scale_color_manual(name = "Location",
+                       values = c("salinopolis_pa" = "tomato2", 
+                                  "florianopolis_sc" = "deepskyblue4", 
+                                  "santa_marta_sc" = "mediumturquoise"),
+                       labels = c("salinopolis_pa" = "Salinópolis, PA",
+                                  "florianopolis_sc" = "Florianópolis, SC",
+                                  "santa_marta_sc" = "Santa Marta, SC")) +
+    ylab(ylabel) +
+    xlab("month") +
     theme(axis.title = element_text(size = 18),
           axis.text = element_text(size = 14),
           legend.text = element_text(size = 18),
           legend.title = element_text(size = 18))
 }
 
-# Read data -------------------------------------------------------------------#
+#data
+weather_data <- 
+  readr::read_csv("../data/dados_climaticos.csv") %>%
+  tidyr::gather(variable, value, -c(local:mes)) %>%
+  tidyr::separate(variable, c("variable", "unit"), 
+                  sep = "_\\(|\\)_", extra = "drop") %>%
+  dplyr::mutate(month = factor(mes, levels = c("Jan", "Fev", "Mar", "Abr", "Mai",
+                                             "Jun", "Jul", "Ago", "Set", "Out",
+                                             "Nov", "Dez"))) %>%
+  dplyr::group_by(variable, unit, local, month) %>%
+  dplyr::summarise(average = mean(value, na.rm = TRUE), 
+                   sd = sd(value, na.rm = TRUE)) %>%
+  dplyr::ungroup() %>%
+  split(.$variable)
 
-dados_climaticos <- read.csv("dados_climaticos.csv")
-
-vars <- c("precipitacao", "radiacao", "temp_media",
-          "temp_max", "temp_min",  "umidade")
-
-names(dados_climaticos) <- c("local", "ano", "mes", vars)
-
-# Make plot and save to pdf ---------------------------------------------------#
-plot_list <- vector("list", length(vars))
-names(plot_list) <- vars
-
-for(variable in vars)
-  plot_list[[variable]] <- plot_vars(variable)
-
-pdf("graficos_dados_climaticos.pdf", width = 12)
-plot_list
-dev.off()
-
-# Make plot and save to png ---------------------------------------------------#
-for (variavel in vars) {
-  png(paste0(variavel, ".png"), width = 12, height = 6, res = 300, units = "in")
-  print(plot_vars(variavel))
+#save plots
+for (i in names(weather_data)) {
+  png(paste0("../plots/", i, ".png"), 
+      width = 12, height = 6, res = 300, units = "in")
+  print(plot_vars(weather_data[[i]]))
   dev.off()
 }
