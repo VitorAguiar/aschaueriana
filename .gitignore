@@ -1,5 +1,4 @@
 .Rhistory
-*.xls
-*.xlsx
-*.png
+data/
+plots/
 .DS_Store
