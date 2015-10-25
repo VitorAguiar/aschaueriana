@@ -1,5 +1,0 @@
-Open an R session and run the commands below to install required packages:
-
-install.packages(c("devtools", "magrittr"))
-
-devtools::install_github("hadley/dplyr", "hadley/ggplot2", "hadley/tidyr", "hadley/readr" ,"hadley/readxl")
