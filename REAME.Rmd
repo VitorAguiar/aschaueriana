@@ -1,0 +1,22 @@
+---
+title: ""
+output: 
+  md_document:
+    variant: markdown_github
+---
+
+Open an R session and run the following commands to install required packages:
+
+```{R eval = FALSE}
+install.packages(c("devtools", "magrittr"))
+
+devtools::install_github("hadley/dplyr", "hadley/ggplot2", "hadley/plyr", "hadley/tidyr", "hadley/readr" ,"hadley/readxl")
+```
+
+Make sure you create a directory with subdirectories named "R", "data" and "plots". Put the R scripts in the subdirectory "R" and the input data in the "data" subdirectory.
+
+Execute the scripts from subdirectory "R".
+
+```{r echo = FALSE}
+system("tree /Users/vitoraguiar/aschaueriana2", intern = TRUE)
+```
