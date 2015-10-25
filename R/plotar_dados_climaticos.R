@@ -1,7 +1,7 @@
 library(ggplot2)
 
 #function to make plots
-plot_vars <- function(plot_df) {
+plot_weather <- function(plot_df) {
   
   ylabel <- plot_df %$% paste0(variable[1], " (", unit[1], ")")
   
@@ -32,9 +32,9 @@ weather_data <-
   tidyr::gather(variable, value, -c(local:mes)) %>%
   tidyr::separate(variable, c("variable", "unit"), 
                   sep = "_\\(|\\)_", extra = "drop") %>%
-  dplyr::mutate(month = factor(mes, levels = c("Jan", "Fev", "Mar", "Abr", "Mai",
-                                             "Jun", "Jul", "Ago", "Set", "Out",
-                                             "Nov", "Dez"))) %>%
+  dplyr::mutate(month = factor(mes, levels = c("Jan", "Fev", "Mar", "Abr", 
+					       "Mai", "Jun", "Jul", "Ago", 
+					       "Set", "Out", "Nov", "Dez"))) %>%
   dplyr::group_by(variable, unit, local, month) %>%
   dplyr::summarise(average = mean(value, na.rm = TRUE), 
                    sd = sd(value, na.rm = TRUE)) %>%
@@ -45,6 +45,6 @@ weather_data <-
 for (i in names(weather_data)) {
   png(paste0("../plots/", i, ".png"), 
       width = 12, height = 6, res = 300, units = "in")
-  print(plot_vars(weather_data[[i]]))
+  print(plot_weather(weather_data[[i]]))
   dev.off()
 }

@@ -2,7 +2,7 @@ library(magrittr)
 library(ggplot2)
 
 #function to make plots
-plot_var <- function(x, unit) {
+plot_morpho <- function(x, unit) {
   
   dates <- unique(x$date)
   xlabels <- 
@@ -62,6 +62,6 @@ units <- c("cm", "mm", "N folhas") %>% `names<-`(names(morpho_data))
 for (i in names(morpho_data)) {
   png(paste0("../plots/", i, ".png"), 
       width = 16, height = 8, res = 300, units = "in")
-  print(plot_var(x = morpho_data[[i]], unit = units[[i]]))
+  print(plot_morpho(x = morpho_data[[i]], unit = units[[i]]))
   dev.off()
 }
