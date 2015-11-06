@@ -1,3 +1,4 @@
+library(magrittr)
 library(ggplot2)
 
 #function to make plots
