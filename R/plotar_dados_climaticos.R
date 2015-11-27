@@ -4,48 +4,34 @@ library(ggplot2)
 #function to make plots
 plot_weather <- function(plot_df) {
   
-  ylabel <- plot_df %$% paste0(variable[1], " (", unit[1], ")")
+  ylabel <- plot_df %$% paste0(variavel[1], " (", unidade[1], ")")
   
-  ggplot(data = plot_df, 
-         aes(x = month, y = average, group = local, color = local)) +
-    geom_errorbar(aes(ymin = average - sd, ymax = average + sd), 
-                  stat = "identity", width = 0.2) +
-    geom_line(size = 1.1) +
-    geom_point(size = 5) +
-    scale_color_manual(name = "Location",
-                       values = c("salinopolis_pa" = "tomato2", 
-                                  "florianopolis_sc" = "deepskyblue4", 
-                                  "santa_marta_sc" = "mediumturquoise"),
-                       labels = c("salinopolis_pa" = "Salinópolis, PA",
-                                  "florianopolis_sc" = "Florianópolis, SC",
-                                  "santa_marta_sc" = "Santa Marta, SC")) +
+  ggplot(data = plot_df, aes(x = mes, y = valor, group = local, color = local)) +
+    stat_summary(fun.data = mean_cl_boot, geom = "point", size = 4) +
+    stat_summary(fun.data = mean_cl_boot, geom = "errorbar") +
+    stat_summary(fun.data = mean_cl_boot, geom = "line", size = 1.1) +
+    scale_color_fivethirtyeight() +
     ylab(ylabel) +
-    xlab("month") +
-    theme(axis.title = element_text(size = 18),
-          axis.text = element_text(size = 14),
-          legend.text = element_text(size = 18),
-          legend.title = element_text(size = 18))
+    theme(axis.title = element_text(size = 14),
+          axis.text = element_text(size = 10),
+          legend.text = element_text(size = 14),
+          legend.title = element_text(size = 14))
 }
 
 #data
 weather_data <- 
   readr::read_csv("../data/dados_climaticos.csv") %>%
-  tidyr::gather(variable, value, -c(local:mes)) %>%
-  tidyr::separate(variable, c("variable", "unit"), 
+  tidyr::gather(variavel, valor, -(local:mes)) %>%
+  tidyr::separate(variavel, c("variavel", "unidade"), 
                   sep = "_\\(|\\)_", extra = "drop") %>%
-  dplyr::mutate(month = factor(mes, levels = c("Jan", "Fev", "Mar", "Abr", 
-					       "Mai", "Jun", "Jul", "Ago", 
-					       "Set", "Out", "Nov", "Dez"))) %>%
-  dplyr::group_by(variable, unit, local, month) %>%
-  dplyr::summarise(average = mean(value, na.rm = TRUE), 
-                   sd = sd(value, na.rm = TRUE)) %>%
-  dplyr::ungroup() %>%
-  split(.$variable)
+  dplyr::mutate(mes = factor(mes, levels = unique(mes)))
+
+variables <- unique(weather_data$variavel)
 
 #save plots
-for (i in names(weather_data)) {
-  png(paste0("../plots/", i, ".png"), 
+for (v in variables) {
+  png(paste0("../plots/", v, ".png"), 
       width = 12, height = 6, res = 300, units = "in")
-  print(plot_weather(weather_data[[i]]))
+  print(plot_weather(dplyr::filter(weather_data, variavel == v)))
   dev.off()
 }

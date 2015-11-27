@@ -2,29 +2,33 @@ library(magrittr)
 
 format_morpho <- function(input_file, sheet) {
   
+  variavel <- gsub(" ", "_", tolower(sheet))
+  
   x <- 
     readxl::read_excel(input_file, sheet = sheet, na = "NA") %>%
-    tidyr::gather(date, value, -c(mae, localidade, individuo)) %>%
-    dplyr::mutate(date = as.numeric(levels(date))[date] %>% 
-                    as.Date(origin = "1904-01-01"))
+    tidyr::gather(data, valor, -c(mae, localidade, individuo)) %>%
+    dplyr::mutate(data = data %>% as.character() %>% as.numeric() %>% 
+                    as.Date(origin = "1904-01-01")) %>%
+    dplyr::mutate(variavel = rep(variavel, nrow(.)))
   
-  days_diff <- 
-    dplyr::data_frame(date = unique(x$date),
-                      days = c(0, unique(x$date) %>% diff() %>% as.numeric()),
-                      rate = 0:(dplyr::n_distinct(x$date) - 1))
+  dates <- unique(x$data)
+  prev_dates <- c(dates[1], dates[-length(dates)])
+  prev <- data.frame(data = dates, data_previa = prev_dates)
   
-  x %>% 
-    dplyr::inner_join(days_diff, by = "date") %>% 
+  x %>%
+    dplyr::inner_join(prev, by = "data") %>%
+    dplyr::mutate(dias_passados = as.numeric(data - data_previa), 
+                  periodo = paste(data_previa, data, sep = "\nto\n")) %>%
     dplyr::group_by(mae, localidade, individuo) %>%
-    dplyr::mutate(growth = c(0, diff(value))/days) %>%
+    dplyr::mutate(crescimento = c(0, diff(valor))/dias_passados) %>%
     dplyr::ungroup() %>%
-    dplyr::mutate(variable = rep(gsub(" ", "_", tolower(sheet)), nrow(.))) %>%
-    dplyr::select(variable, mae:growth) %>%
-    dplyr::rename(mother = mae, location = localidade, individual = individuo)
+    dplyr::filter(dias_passados > 0) %>%
+    dplyr::select(variavel, localidade, mae, individuo, periodo, crescimento) %>%
+    dplyr::arrange(localidade, mae, individuo, periodo)
 }
 
 c("ALTURA", "DIAMETRO", "N FOLHAS") %>%
   lapply(. %>% format_morpho(input_file = "../data/dados_morfologicos.xlsx", 
-                         sheet = .)) %>%
+                             sheet = .)) %>%
   dplyr::bind_rows() %>%
   readr::write_csv("../data/dados_morfologicos.csv")
