@@ -1,5 +1,6 @@
 library(magrittr)
 library(ggplot2)
+library(ggthemes)
 
 #function to make plots
 plot_weather <- function(plot_df) {

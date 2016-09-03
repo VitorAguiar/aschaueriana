@@ -6,6 +6,8 @@ format_morpho <- function(input_file, sheet) {
   
   x <- 
     readxl::read_excel(input_file, sheet = sheet, na = "NA") %>%
+    .[, sapply(., function(x) !all(is.na(x)))] %>%
+    .[apply(., 1, function(x) !all(is.na(x))), ] %>%
     tidyr::gather(data, valor, -c(mae, localidade, individuo)) %>%
     dplyr::mutate(data = data %>% as.character() %>% as.numeric() %>% 
                     as.Date(origin = "1904-01-01")) %>%
